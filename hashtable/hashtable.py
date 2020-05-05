@@ -7,8 +7,12 @@ class HashTableEntry:
         self.key = key
         self.value = value
         self.next = None
-    
-    def delete(self, delete_key):
+        self.no_key_message = "That key isn't in this hash table"
+
+    def __str__(self):
+        return str(self.key) + "," + str(self.value)
+
+    def delete(self, delete_key, ll_prev=None, ll_first= None):
         """
         look through the linked list and delete
         a value. If the first value is the one that
@@ -16,15 +20,58 @@ class HashTableEntry:
         value 
         Outer functions must reassign values if the return
         of this function isn't None.
+
+        This function returns 
+        0 if key doesn't exist
+        and a pointer to the first
+        item of an ll with that key deleted if
+        The key exists
+        3 cases:
+        1) key only ll value
+            return None 
+        2) key is first (of many) ll value
+            return second key
+        3) key is non-first
+            have previous key point to next key
+            return first key
         """
-        pass
+        if ll_first == None:
+            ll_first = self
+
+        if delete_key == self.key: # if the key to delete is the current key
+            if ll_prev is not None: # value in middle of ll
+                ll_prev.next = self.next
+                return ll_first
+            else: # first value of ll
+                if self.next: # if you have another value
+                    return self.next
+                else: # if there are no other values
+                    return None
+
+        if self.next: # exists
+            return self.next.delete(delete_key,self,ll_first)
+        else: # if self.next == None
+            print(self.no_key_message)
+            return 0
+        
     
     def retreive(self, retreive_key):
         """
         look through the linked list and return 
         key value if the key exists, else return None
+        This doesn't modify the ll at all so it doesn't
+        have to worry about location of item in ll
+
+        Deal with empty values (a none) outside this ll
+        So when this is called there is at least one value
         """
-        pass
+        ll = self
+        while ll is not None:
+            if retreive_key == ll.key:
+                return ll.value
+            ll = ll.next
+
+        return None
 
     
 
@@ -36,6 +83,9 @@ class HashTable:
 
     Implement this.
     """
+    def __init__(self,capacity):
+        self.storage = [None]*capacity
+        self.capacity = capacity
 
     def fnv1(self, key):
         """
@@ -43,6 +93,7 @@ class HashTable:
 
         Implement this, and/or DJB2.
         """
+        pass
 
     def djb2(self, key):
         """
@@ -50,6 +101,11 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
+        hash_val = 5381
+        my_bytes = key.encode() # get the bytes
+        for val in my_bytes:
+            hash_val = hash_val * 33 + val
+        return hash_val
 
     def hash_index(self, key):
         """
@@ -67,6 +123,13 @@ class HashTable:
 
         Implement this.
         """
+        new_val = HashTableEntry(key,value)
+        li = self.hash_index(key)
+        if self.storage[li]:
+            new_val.next = self.storage[li]
+            self.storage[li] = new_val
+        else:
+            self.storage[li] = new_val
 
     def delete(self, key):
         """
@@ -76,6 +139,12 @@ class HashTable:
 
         Implement this.
         """
+        li = self.hash_index(key)
+        if self.storage[li]:
+            self.storage[li] = self.storage[li].delete(key)
+        else:
+            print("that key isn't in the hashtable")
+
 
     def get(self, key):
         """
@@ -85,6 +154,11 @@ class HashTable:
 
         Implement this.
         """
+        li = self.hash_index(key)
+        if self.storage[li]:
+            return self.storage[li].retreive(key)
+        else:
+            return None
 
     def resize(self):
         """
@@ -93,55 +167,19 @@ class HashTable:
 
         Implement this.
         """
-        
-    def _ll_search(self,key):
-        """
-        Input a reference to a linked list 
+        self.capacity = self.capacity * 2
+        new_storage = HashTable(self.capacity)
+        for position in self.storage:
+            if position: # if it isn't None
+                ll = position
+                while ll: 
+                    new_storage.put(ll.key,ll.value)
+                    ll = ll.next 
+        self.storage = new_storage.storage
+        # print(len(self.storage))
+        pass
 
-        And the type of operation 
-        you can:
-        1) return a value
-        2) delete a value
-        if the key doesn't exist (in either case)
-        then return None, and print out a message
-        saying that key doesn't exist. 
-        """
-        valid_operations = ['delete','d','retreive','r']
-        if operation not in valid_operations:
-            print("internal function _ll_search was not given a valid operation")
-            return None
-        no_key_message = "That key isn't in this hash table"
-        ll = self.storage[ll_index]
-
-        # 0 items (delete and retreive return the same thing)
-        if ll is None:
-            print(no_key_message)
-            # delete doesn't expect return
-            # retreive expects a None
-            return None
-
-        # 1+ items
-        else: # if you have a linked list stored in the index location
-            ll_prev = None
-            while ll is not None:
-                if ll.key == key:
-                    # DELETE (no return, but print success/fail)
-                    if operation == "delete" or operation == 'd':
-                        if ll_prev == None: # if its the first item in the linked list
-                            self.storage[ll_index] = ll.next
-                        else: # if it is the second item onwards:
-                            ll_prev.next = ll.next # point to the 
-                        return None
-
-                    # RETREIVE (return item, and print fail if no key)
-                    else: # if it is retreive 
-                        return ll.value
-
-                ll_prev = ll
-                ll = ll.next
-            # if it gets out of the while without returning a value
-            print(no_key_message)
-            return None
+    
     
         
 
