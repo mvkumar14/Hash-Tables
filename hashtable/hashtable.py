@@ -86,6 +86,7 @@ class HashTable:
     def __init__(self,capacity):
         self.storage = [None]*capacity
         self.capacity = capacity
+        self.current_amount = 0
 
     def fnv1(self, key):
         """
@@ -122,6 +123,14 @@ class HashTable:
         Hash collisions should be handled with Linked List Chaining.
 
         Implement this.
+
+        This method doesn't currently account for puts that are actually
+        updates. (when the key is exactly the same istead of a collision)
+        does it need to ? 
+        Would you ever accidentally put in a value that already exists in the table? 
+        The that you retreive, however makes sure that the most recently placed
+        value is what is returned. so maybe its okay, and its just a matter 
+        of efficieny?
         """
         new_val = HashTableEntry(key,value)
         li = self.hash_index(key)
@@ -130,6 +139,9 @@ class HashTable:
             self.storage[li] = new_val
         else:
             self.storage[li] = new_val
+        self.current_amount += 1 
+        if self.current_amount > 0.7*self.capacity:
+            self.resize()
 
     def delete(self, key):
         """
