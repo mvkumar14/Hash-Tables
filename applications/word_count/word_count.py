@@ -1,6 +1,28 @@
-def word_count(s):
-    # Implement me.
+import string
 
+def word_count(s):
+    # split by word
+    my_list = s.split()
+
+    remove = """ " : ; , . - + = / \ | [ ] { } ( ) * ^ & """
+    
+    output = {}
+    for i in my_list:
+        temp = ""
+        for j in i:
+            if j in remove:
+                continue
+            else:
+                temp += j
+        temp = temp.lower()
+        if temp:
+            try:
+                output[temp] += 1
+            except KeyError:
+                output[temp] = 1
+    
+
+    return output
 
 if __name__ == "__main__":
     print(word_count(""))
